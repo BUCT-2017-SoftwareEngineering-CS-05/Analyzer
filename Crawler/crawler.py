@@ -93,5 +93,5 @@ if __name__ == "__main__":
     df=df.loc[:,cols]
 
     # # df.to_csv("res.csv")
-    pd.set_option('display.max_columns', None)
-    print(df)
+#     pd.set_option('display.max_columns', None)
+#     print(df)
