@@ -1,7 +1,7 @@
 import datetime
 import time
 import requests
-import bs4
+import csv
 import os
 import json
 from lxml import etree
@@ -13,16 +13,25 @@ headers = {
         'cookie':'tt_webid=6823926440687355406; s_v_web_id=verify_k9w5xdqx_596ksI8M_GwIO_4xNh_9URh_MDxLpYhsFPEk; ttcid=8db4c6f144d2419a8726a73331e91a5224; WEATHER_CITY=%E5%8C%97%E4%BA%AC; __tasessionId=p17mmo1zx1588819197198; SLARDAR_WEB_ID=b93db66a-d7bc-4a21-9b6e-4c2e24609141; tt_webid=6823926440687355406; csrftoken=bec079753b13701f058b75df60faf8bf; tt_scid=HQ8c3xqRbI85KSLgA3YjioyWCIk4oOuTHGDw6VobuSeNh2js4x6j-MZtiIPzrq8Fa01a'
     }
 
-def spider(data,beginPage,endPage):
+# 读入新闻信息，看是否抓取过
+def urlVisited(url):
+    with open('res.csv', 'r',encoding="utf_8_sig") as f:
+        reader = csv.reader(f)
+        for i in reader:
+            if url in i[2]:
+                return True
+    return False
+
+def spider(data,url,beginPage,endPage):
     news_total=[]
 
     for key in data["keyword"]:
         for page in range(beginPage,endPage+1):
-            fullUrl=data["url"] %{'name':key,'page':page}
+            fullUrl=url %{'name':key,'page':page}
             
             # 读取页面
             time.sleep(1)
-            # print(key+"  正在抓取第"+str(page)+"页")
+            print(key+"  正在抓取第"+str(page)+"页")
             
             try:
                 news_total.extend(load_page(fullUrl,key))
@@ -40,11 +49,10 @@ def load_page(url,name):
     content=etree.HTML(html.text)
     content_list=content.xpath('//div[@class="wrap"]/div[@class="main clearfix"]/div[@class="result"]/div[@class="box-result clearfix"]/h2/a/@href')
 
-    visited=[]
     for j in content_list:
-        if j not in visited:
+        # 没有访问过，则爬取新闻详情
+        if (urlVisited(j)==False):
             new_url=j
-            visited.append(j)
 
             # 获取新闻详情页
             res=load_link_page(j,name)
@@ -68,6 +76,7 @@ def load_link_page(url,name):
        
         result={
             "museum":name,
+            "url":url,
             "title":news.xpath('//div[@class="main-content w1240"]/h1[@class="main-title"]/text()'),
             "time":news.xpath('//div[@class="top-bar-inner clearfix"]/div[@class="date-source"]/span[@class="date"]/text()'),
             "article":news_content
@@ -81,17 +90,20 @@ if __name__ == "__main__":
     results=[]
 
     # 读入要爬取的关键字和url
-    with open("data.json","r+") as f:
+    with open("keyword.json","r+") as f:
         data=json.load(f)
 
+    with open("sites.json","r+") as f:
+        site=json.load(f)
+
     # 爬取
-    results=spider(data,beginPage,endPage)
+    results=spider(data,site["url"],beginPage,endPage)
     
-    # 结果转化为dataframe
+    # # 结果转化为dataframe
     df = pd.DataFrame(results)
-    cols=['museum','title','time','article']
+    cols=['museum','url','title','time','article']
     df=df.loc[:,cols]
 
-    # # df.to_csv("res.csv")
-#     pd.set_option('display.max_columns', None)
-#     print(df)
+    df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
+    pd.set_option('display.max_columns', None)
+    print(df)
