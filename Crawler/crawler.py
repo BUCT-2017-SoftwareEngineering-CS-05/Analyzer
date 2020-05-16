@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import datetime
 import time
 import requests
@@ -25,13 +27,13 @@ def urlVisited(url):
 def spider(data,url,beginPage,endPage):
     news_total=[]
 
-    for key in data["keyword"]:
+    for key in data:
         for page in range(beginPage,endPage+1):
             fullUrl=url %{'name':key,'page':page}
             
             # 读取页面
             time.sleep(1)
-            print(key+"  正在抓取第"+str(page)+"页")
+            print(key+ u"  正在抓取第"+str(page)+u"页")
             
             try:
                 news_total.extend(load_page(fullUrl,key))
@@ -90,18 +92,20 @@ if __name__ == "__main__":
     results=[]
 
     # 读入要爬取的关键字和url
-    with open("keyword.json","r+") as f:
+    with open("keywords.json","r+") as f:
         data=json.load(f)
 
-    with open("sites.json","r+") as f:
-        site=json.load(f)
+    with open("crawlerconfig.json","r+") as f:
+        sites=json.load(f)
 
     # 爬取
-    results=spider(data,site["url"],beginPage,endPage)
+    for site in sites:
+        results = results + spider(data,site["url"],beginPage,endPage)
+
     
     # # 结果转化为dataframe
     df = pd.DataFrame(results)
-    cols=['museum','url','title','time','article']
+    cols=[u'museum',u'url',u'title',u'time',u'article']
     df=df.loc[:,cols]
 
     df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
