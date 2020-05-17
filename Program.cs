@@ -13,11 +13,16 @@ namespace AnalyzerCrawler
 
             try
             {
-                //RequestClient.GetConfigrations();
+                RequestClient.GetConfigrations();
 
                 var res = GoPython(@"Crawler/crawler.py");
 
-                
+                if (res.Item2.Length > 0)
+                {
+                    throw new Exception("Errors in script:\n" + res.Item2);
+                }
+
+
             }
             catch(Exception e)
             {

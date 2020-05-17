@@ -25,7 +25,7 @@ namespace AnalyzerCrawler
 
                 var result = HttpGet(url);
 
-                var fs = new FileStream("Crawler/" + r + ".json", FileMode.Truncate);
+                var fs = new FileStream(r + ".json", FileMode.Truncate);
                 fs.Write(Encoding.ASCII.GetBytes(result).AsSpan());
                 fs.Flush(); fs.Close();
             }

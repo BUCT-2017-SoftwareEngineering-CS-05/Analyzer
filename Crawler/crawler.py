@@ -110,4 +110,4 @@ if __name__ == "__main__":
 
     #df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
     #pd.set_option('display.max_columns', None)
-    print(results)
+    print(json.dumps(results))
