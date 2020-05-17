@@ -17,11 +17,14 @@ headers = {
 
 # 读入新闻信息，看是否抓取过
 def urlVisited(url):
-    with open('res.csv', 'r',encoding="utf_8_sig") as f:
-        reader = csv.reader(f)
-        for i in reader:
-            if url in i[2]:
-                return True
+    try:
+        with open('res.csv', 'r',encoding="utf_8_sig") as f:
+            reader = csv.reader(f)
+            for i in reader:
+                if url in i[2]:
+                    return True
+    except:
+        pass
     return False
 
 def spider(data,url,beginPage,endPage):
@@ -37,7 +40,8 @@ def spider(data,url,beginPage,endPage):
             
             try:
                 news_total.extend(load_page(fullUrl,key))
-            except:
+            except Exception as e:
+                print(e)
                 continue
             
 
@@ -91,6 +95,10 @@ if __name__ == "__main__":
     endPage=30
     results=[]
 
+    if not os.path.isfile("res.csv"):
+        file = open('res.csv','w')
+        file.close()
+
     # 读入要爬取的关键字和url
     with open("keywords.json","r+") as f:
         data=json.load(f)
@@ -103,11 +111,11 @@ if __name__ == "__main__":
         results = results + spider(data,site["url"],beginPage,endPage)
 
     
-    # # 结果转化为dataframe
-    #df = pd.DataFrame(results)
-    #cols=[u'museum',u'url',u'title',u'time',u'article']
-    #df=df.loc[:,cols]
+    # 结果转化为dataframe
+    df = pd.DataFrame(results)
+    cols=[u'museum',u'url',u'title',u'time',u'article']
+    df=df.loc[:,cols]
 
-    #df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
+    df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
     #pd.set_option('display.max_columns', None)
     print(json.dumps(results))
