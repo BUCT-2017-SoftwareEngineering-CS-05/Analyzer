@@ -33,7 +33,7 @@ def spider(data,url,beginPage,endPage):
             
             # 读取页面
             time.sleep(1)
-            print(key+ u"  正在抓取第"+str(page)+u"页")
+#           
             
             try:
                 news_total.extend(load_page(fullUrl,key))
@@ -104,10 +104,10 @@ if __name__ == "__main__":
 
     
     # # 结果转化为dataframe
-    df = pd.DataFrame(results)
-    cols=[u'museum',u'url',u'title',u'time',u'article']
-    df=df.loc[:,cols]
+    #df = pd.DataFrame(results)
+    #cols=[u'museum',u'url',u'title',u'time',u'article']
+    #df=df.loc[:,cols]
 
-    df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
-    pd.set_option('display.max_columns', None)
-    print(df)
+    #df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
+    #pd.set_option('display.max_columns', None)
+    print(results)

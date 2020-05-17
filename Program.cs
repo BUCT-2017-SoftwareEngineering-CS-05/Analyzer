@@ -1,6 +1,7 @@
-using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace AnalyzerCrawler
 {
@@ -12,17 +13,33 @@ namespace AnalyzerCrawler
 
             try
             {
-                RequestClient.GetConfigrations();
+                //RequestClient.GetConfigrations();
 
-                ScriptEngine engine = Python.CreateEngine();
-                ScriptScope scope = engine.CreateScope();
-                ScriptSource script = engine.CreateScriptSourceFromFile(@"Crawler/crawler.py");
+                var res = GoPython(@"Crawler/crawler.py");
 
-                var result = script.Execute(scope);
+                
             }
             catch(Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+        }
+
+        public static Tuple<String, String> GoPython(string pythonFile, string moreArgs = "")
+        {
+            ProcessStartInfo PSI = new ProcessStartInfo();
+            PSI.FileName = "python.exe";
+            PSI.Arguments = string.Format("\"{0}\" {1}", Path.Combine(Directory.GetCurrentDirectory(), pythonFile), moreArgs);
+            PSI.CreateNoWindow = true;
+            PSI.UseShellExecute = false;
+            PSI.RedirectStandardError = true;
+            PSI.RedirectStandardOutput = true;
+            using (Process process = Process.Start(PSI))
+            using (StreamReader reader = process.StandardOutput)
+            {
+                string stderr = process.StandardError.ReadToEnd(); // Error(s)!!
+                string result = reader.ReadToEnd(); // What we want.
+                return new Tuple<String, String>(result, stderr);
             }
         }
     }
