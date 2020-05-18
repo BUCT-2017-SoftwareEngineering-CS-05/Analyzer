@@ -9,6 +9,7 @@ import json
 from lxml import etree
 import re
 import pandas as pd
+import sys
 		
 headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36',
@@ -17,14 +18,13 @@ headers = {
 
 # 读入新闻信息，看是否抓取过
 def urlVisited(url):
-    try:
-        with open('res.csv', 'r',encoding="utf_8_sig") as f:
-            reader = csv.reader(f)
-            for i in reader:
-                if url in i[2]:
-                    return True
-    except:
-        pass
+
+    with open('res.csv', 'r',encoding="utf_8_sig") as f:
+        reader = csv.reader(f)
+        for i in reader:
+            if url in i[2]:
+                return True
+
     return False
 
 def spider(data,url,beginPage,endPage):
@@ -40,8 +40,9 @@ def spider(data,url,beginPage,endPage):
             
             try:
                 news_total.extend(load_page(fullUrl,key))
-            except Exception as e:
-                print(e)
+                # print('data added')
+            except (ConnectionError,Exception) as e:
+                print(e,file=sys.stderr)
                 continue
             
 
@@ -62,7 +63,7 @@ def load_page(url,name):
 
             # 获取新闻详情页
             res=load_link_page(j,name)
-            if res["title"] !=[] and res["article"] != "":
+            if res["Title"] != "" and res["Content"] != "":
                 results.append(res)
 
     return results
@@ -81,11 +82,11 @@ def load_link_page(url,name):
         news_content="\n".join(paragraph)
        
         result={
-            "museum":name,
-            "url":url,
-            "title":news.xpath('//div[@class="main-content w1240"]/h1[@class="main-title"]/text()'),
-            "time":news.xpath('//div[@class="top-bar-inner clearfix"]/div[@class="date-source"]/span[@class="date"]/text()'),
-            "article":news_content
+            "Museum":name,
+            "Source":url,
+            "Title": "" if len(news.xpath('//div[@class="main-content w1240"]/h1[@class="main-title"]/text()'))==0 else news.xpath('//div[@class="main-content w1240"]/h1[@class="main-title"]/text()')[0],
+            "Publishtime":"" if len(news.xpath('//div[@class="top-bar-inner clearfix"]/div[@class="date-source"]/span[@class="date"]/text()'))==0 else news.xpath('//div[@class="top-bar-inner clearfix"]/div[@class="date-source"]/span[@class="date"]/text()')[0],
+            "Content":news_content
         }
     
     return result
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     
     # 结果转化为dataframe
     df = pd.DataFrame(results)
-    cols=[u'museum',u'url',u'title',u'time',u'article']
+    cols=[u'Museum',u'Source',u'Title',u'Publishtime',u'Content']
     df=df.loc[:,cols]
 
     df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
