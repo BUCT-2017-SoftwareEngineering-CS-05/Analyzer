@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -9,11 +8,10 @@ namespace AnalyzerCrawler
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
 
             try
             {
-                //RequestClient.GetConfigrations();
+                RequestClient.GetConfigrations();
 
                 var res = GoPython(@"Crawler/crawler.py");
 
@@ -37,18 +35,22 @@ namespace AnalyzerCrawler
             catch(Exception e)
             {
                 Console.Error.WriteLine(e.Message);
+                Console.Error.WriteLine(e.StackTrace);
+            
             }
         }
 
         public static Tuple<string, string> GoPython(string pythonFile, string moreArgs = "")
         {
-            ProcessStartInfo PSI = new ProcessStartInfo();
-            PSI.FileName = "py.exe";
-            PSI.Arguments = string.Format("\"{0}\" {1}", Path.Combine(Directory.GetCurrentDirectory(), pythonFile), moreArgs);
-            PSI.CreateNoWindow = true;
-            PSI.UseShellExecute = false;
-            PSI.RedirectStandardError = true;
-            PSI.RedirectStandardOutput = true;
+            ProcessStartInfo PSI = new ProcessStartInfo
+            {
+                FileName = "py.exe",
+                Arguments = string.Format("\"{0}\" {1}", Path.Combine(Directory.GetCurrentDirectory(), pythonFile), moreArgs),
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
+            };
             using (Process process = Process.Start(PSI))
             using (StreamReader reader = process.StandardOutput)
             {
@@ -60,10 +62,10 @@ namespace AnalyzerCrawler
                 };
                 if (hasError)
                 {
-                    stderr = process.StandardError.ReadToEnd(); // Error(s)!!
+                    stderr = process.StandardError.ReadToEnd();
 
                 }
-                string result = reader.ReadToEnd(); // What we want.
+                string result = reader.ReadToEnd();
                 return new Tuple<string, string>(result, stderr);
             }
         }
