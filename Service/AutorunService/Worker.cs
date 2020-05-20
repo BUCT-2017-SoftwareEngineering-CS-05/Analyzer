@@ -65,7 +65,7 @@ namespace AutorunService
                 {
                     _logger.LogInformation(process.StandardOutput.ReadLine());
                 }
-
+                _logger.LogInformation(process.StandardOutput.ReadToEnd());
                 while (process.StandardError.Peek() > -1)
                 {
                     _logger.LogError(process.StandardError.ReadLine());
