@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.IO;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace AnalyzerCrawler
 {
@@ -27,7 +28,8 @@ namespace AnalyzerCrawler
                 var result = HttpGet(url);
 
                 var fs = new FileStream(r + ".json", FileMode.Create);
-                fs.Write(Encoding.ASCII.GetBytes(result).AsSpan());
+                fs.Write(Encoding.ASCII.GetBytes(Regex.Replace(result, @"[^\x00-\x7F]", c =>
+    string.Format(@"\u{0:x4}", (int)c.Value[0]))).AsSpan());
                 fs.Flush(); fs.Close();
             }
         }
