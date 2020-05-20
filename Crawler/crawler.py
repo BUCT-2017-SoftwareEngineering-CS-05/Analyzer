@@ -34,19 +34,17 @@ def spider(data,url,beginPage,endPage):
         for page in range(beginPage,endPage+1):
             fullUrl=url %{'name':key,'page':page}
             
-            # 读取页面
-            time.sleep(1)
-#           
-            
+#           # 读取页面
             try:
-                news_total.extend(load_page(fullUrl,key))
+                load_page(fullUrl,key)
                 # print('data added')
             except (ConnectionError,Exception) as e:
                 print(e,file=sys.stderr)
                 continue
             
+            time.sleep(1)
 
-    return news_total
+    # return news_total
 
 # 新闻列表
 def load_page(url,name):
@@ -65,8 +63,17 @@ def load_page(url,name):
             res=load_link_page(j,name)
             if res["Title"] != "" and res["Content"] != "":
                 results.append(res)
+    
+    if(len(results) != 0):
+        # 结果转化为dataframe
+        df = pd.DataFrame(results)
+        cols=[u'Museum',u'Source',u'Title',u'Publishtime',u'Content']
+        df=df.loc[:,cols]
 
-    return results
+        df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
+
+        print(json.dumps(results))
+    # return results
 
 # 新闻详情页
 def load_link_page(url,name):
@@ -109,14 +116,14 @@ if __name__ == "__main__":
 
     # 爬取
     for site in sites:
-        results = results + spider(data,site["url"],beginPage,endPage)
+        spider(data,site["url"],beginPage,endPage)
 
     
-    # 结果转化为dataframe
-    df = pd.DataFrame(results)
-    cols=[u'Museum',u'Source',u'Title',u'Publishtime',u'Content']
-    df=df.loc[:,cols]
+    # # 结果转化为dataframe
+    # df = pd.DataFrame(results)
+    # cols=[u'Museum',u'Source',u'Title',u'Publishtime',u'Content']
+    # df=df.loc[:,cols]
 
-    df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
-    #pd.set_option('display.max_columns', None)
-    print(json.dumps(results))
+    # df.to_csv("res.csv",mode='a',encoding="utf_8_sig")
+    # #pd.set_option('display.max_columns', None)
+    # print(json.dumps(results))

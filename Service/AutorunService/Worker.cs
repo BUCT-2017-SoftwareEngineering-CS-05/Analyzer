@@ -63,12 +63,12 @@ namespace AutorunService
             {
                 while (process.StandardOutput.Peek() > -1)
                 {
-                    _logger.LogInformation(process.StandardOutput.ReadToEnd());
+                    _logger.LogInformation(process.StandardOutput.ReadLine());
                 }
 
                 while (process.StandardError.Peek() > -1)
                 {
-                    _logger.LogError(process.StandardError.ReadToEnd());
+                    _logger.LogError(process.StandardError.ReadLine());
                 }
 
                 process.WaitForExit();

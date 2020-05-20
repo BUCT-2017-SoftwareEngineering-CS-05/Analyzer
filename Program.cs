@@ -13,24 +13,8 @@ namespace AnalyzerCrawler
             {
                 RequestClient.GetConfigrations();
 
-                var res = GoPython(@"Crawler/crawler.py");
+                GoPython(@"Crawler/crawler.py");
 
-                if (res.Item1.Length == 0 && res.Item2.Length > 0)
-                {
-                    throw new Exception("Errors in script:\n" + res.Item2);
-                }
-
-                var r = RequestClient.NewsPost(res.Item1);
-                if(int.TryParse(r,out int num))
-                {
-                    Console.WriteLine("News Posted "+num+ " piece(s).");
-
-                }else throw new Exception("Error Response: \n" + r);
-
-                if (res.Item2.Length > 0)
-                {
-                    throw new Exception("With errors in script:\n" + res.Item2);
-                }
             }
             catch(Exception e)
             {
@@ -40,8 +24,10 @@ namespace AnalyzerCrawler
             }
         }
 
-        public static Tuple<string, string> GoPython(string pythonFile, string moreArgs = "")
+        public static void GoPython(string pythonFile, string moreArgs = "")
         {
+            decimal count = 0;
+            string err = "";
             ProcessStartInfo PSI = new ProcessStartInfo
             {
                 FileName = "py.exe",
@@ -52,21 +38,27 @@ namespace AnalyzerCrawler
                 RedirectStandardOutput = true
             };
             using (Process process = Process.Start(PSI))
-            using (StreamReader reader = process.StandardOutput)
             {
-                bool hasError = false;
-                string stderr = "";
-                process.ErrorDataReceived += (sender, e) =>
+                while (process.StandardOutput.Peek() > -1)
                 {
-                    hasError = true;
-                };
-                if (hasError)
-                {
-                    stderr = process.StandardError.ReadToEnd();
-
+                    var r = RequestClient.NewsPost(process.StandardOutput.ReadLine());
+                    if (int.TryParse(r, out int num))
+                    {
+                        Console.WriteLine("News Posted " + num + " piece(s).");
+                        count += num;
+                    }
+                    else throw new Exception("Error Response: \n" + r);
                 }
-                string result = reader.ReadToEnd();
-                return new Tuple<string, string>(result, stderr);
+                Console.WriteLine("In total: " + count);
+                
+                while (process.StandardError.Peek() > -1)
+                {
+                    err += process.StandardError.ReadLine();
+                }
+            }
+            if (err.Length > 0)
+            {
+                throw new Exception(err);
             }
         }
     }
